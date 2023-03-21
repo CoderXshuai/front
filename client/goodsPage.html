@@ -100,7 +100,12 @@
     }
 
     layui.use(['flow', "jquery", "layer"], function () {
-
+        var flow = layui.flow;
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        let router = layui.router();
+        let categoryId = sessionStorage.getItem("categoryId");
+        Jquery = $;
         var pageSize = 10;
         flow.load({
             elem: '#content' //流加载容器
@@ -109,20 +114,21 @@
                 setTimeout(function () {
                     var lis = [];
                     console.log("pageNum", pageNum);
+                    console.log(categoryId+"categoryId")
                     $.ajax({
                         type: 'POST'
                         , url: base_url + '/goods/list'
                         , data: {
                             pageNum: pageNum,
                             pageSize: pageSize,
-                            categoryId: [[${categoryId}]]
+                            categoryId: categoryId
                         }
                         , dataType: "JSON"
                         , success: function (res) {
                             if (res.code === 200) {
                                 var infos = res.data;
                                 console.log("infos", infos);
-                                layui.each(infos, function (index, item) {
+                                layui.each(infos.list, function (index, item) {
                                     html = parseHtml(item);
                                     lis.push(html);
                                 });
@@ -181,6 +187,7 @@
             var imgSrc = $(goodsItem).find("img").attr("src");
             var goodsName = $(goodsItem).find(".goodName").text();
             var goods = new Goods(price, imgSrc, goodsId, goodsName, storeCount);
+            console.log("goods", goods);
             parent.addGoodsByOrder(goods);
         });
 

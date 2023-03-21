@@ -109,7 +109,7 @@ layui.config({
 }).extend({
     index: 'lib/index' //主入口模块
 }).use('index');
-layui.use(['index', "jquery",'layer','element'], function () {
+layui.use(['index', "jquery", 'layer', 'element'], function () {
     var $ = layui.$
         , admin = layui.admin
         , element = layui.element
@@ -135,7 +135,8 @@ layui.use(['index', "jquery",'layer','element'], function () {
                     li.setAttribute('data-name', 'component');
                     li.className = 'layui-nav-item';
                     var a = document.createElement('a');
-                    a.setAttribute('href', base_url + '/goods/list?categoryId=' + category.categoryId);
+                    a.setAttribute('href', './goodsPage.html');
+                    a.setAttribute('onclick', 'setCategoryId(' + category.categoryId + ')');
                     a.setAttribute('target', 'iframe');
                     a.setAttribute('lay-tips', category.categoryName);
                     a.setAttribute('lay-direction', '2');
@@ -166,6 +167,9 @@ layui.use(['index', "jquery",'layer','element'], function () {
     popDom = Jquery(popHtml);
     var topItemNode = popDom.find(".top-item");
     var goodsItemsNode = popDom.find(".goods-items");
+    setCategoryId = function (cid) {
+        sessionStorage.setItem("categoryId", cid);
+    }
     var active = {
         test2: function () {
             top.layui.admin.popupRight({
@@ -188,33 +192,35 @@ layui.use(['index', "jquery",'layer','element'], function () {
                             var goodsItemArray = (goodsItemsNode).children(".goods-item");
                             var order = {}
                             var orderDetails = []
-                            var goodId=''
+                            //goodids为列表
+                            let goodsIds = [];
+                            let counts = [];
+
                             //定义一个订单明细对象
-                            function orderDetail(count, goods,orderCode) {
-                                this.count = count;
-                                this.goods = goods;
-                                this.orderCode=orderCode;
+                            function orderDetail(counts, goodsIds, orderCode) {
+                                this.count = counts;
+                                this.goodsIds = goodsIds;
+                                this.orderCode = orderCode;
                             }
 
                             for (var i = 0; i < goodsItemArray.size(); i++) {
-                                var goods = {};
-                                goods.goodsId = parseInt($(goodsItemArray[i]).find("input[name='goodsId']").val());
+                                var goodsId = parseInt($(goodsItemArray[i]).find("input[name='goodsId']").val());
                                 var count = parseInt($(goodsItemArray[i]).find("input[name='number']").val());
-                                orderDetails.push(new orderDetail(count, goods,orderCode));
+                                //goodid加入到goodsIds中
+                                goodsIds.push(goodsId);
+                                counts.push(count);
                             }
-
-                            order.orderDetails = orderDetails;
-                            order.deskCode = deskCode;
+                            order.goodsIds = goodsIds;
+                            order.counts = counts;
+                            order.orderCode = orderCode;
                             var peopleNode = popDom.find("input[name='people_number']");
-                            console.log("peopleNum", $(peopleNode).val());
                             order.peopleNum = parseInt($(peopleNode).val());
                             order.totalPrice = parseFloat($("#totalMoney").val());
-                            var data = JSON.stringify(order);
+                            var dataJSON = JSON.stringify(order);
                             $.ajax({
-                                url: base_url + '/order/addDetail',
+                                url: base_url + '/order/addDetailList',
                                 type: 'post',
-                                data: data,
-                                contentType: "application/json; charset=utf-8",
+                                data: dataJSON,
                                 dataType: 'JSON',
                                 success: function (res) {
                                     if (res.code == 200) {
