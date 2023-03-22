@@ -115,8 +115,10 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
         , element = layui.element
         , router = layui.router();
     Jquery = $;
-    deskCode = router.search.deskCode;
-    $('#deskCode').innerText = deskCode;
+    const urlSearchParams = new URLSearchParams(location.search);
+    deskCode = urlSearchParams.get('deskCode');
+    sessionStorage.setItem('deskCode', deskCode);
+    $('#deskCode').textContent = deskCode;
     // 假设 categoryList 是一个数组，其中包含了所有的菜单项数据
     $.ajax({
         url: base_url + "/goodscategory/list",
@@ -140,6 +142,7 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
                     a.setAttribute('target', 'iframe');
                     a.setAttribute('lay-tips', category.categoryName);
                     a.setAttribute('lay-direction', '2');
+                    a.setAttribute('lay-bar', '')
                     var i = document.createElement('i');
                     i.className = 'layui-icon layui-icon-home';
                     a.appendChild(i);
@@ -160,6 +163,7 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
                 layer.msg(data.msg, {icon: 5, time: 1000})
             else {
                 orderCode = data.data.orderCode;
+                sessionStorage.setItem('orderCode', orderCode);
             }
         }
     })
@@ -193,8 +197,8 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
                             var order = {}
                             var orderDetails = []
                             //goodids为列表
-                            let goodsIds = [];
-                            let counts = [];
+                            let goodsIds = '';
+                            let counts = '';
 
                             //定义一个订单明细对象
                             function orderDetail(counts, goodsIds, orderCode) {
@@ -207,21 +211,23 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
                                 var goodsId = parseInt($(goodsItemArray[i]).find("input[name='goodsId']").val());
                                 var count = parseInt($(goodsItemArray[i]).find("input[name='number']").val());
                                 //goodid加入到goodsIds中
-                                goodsIds.push(goodsId);
-                                counts.push(count);
+                                goodsIds += goodsId + ',';
+                                counts += count + ',';
                             }
-                            order.goodsIds = goodsIds;
-                            order.counts = counts;
-                            order.orderCode = orderCode;
                             var peopleNode = popDom.find("input[name='people_number']");
-                            order.peopleNum = parseInt($(peopleNode).val());
-                            order.totalPrice = parseFloat($("#totalMoney").val());
+                            var peopleNum = parseInt($(peopleNode).val());
+                            let totalPrice = parseFloat($("#totalMoney").val());
                             var dataJSON = JSON.stringify(order);
                             $.ajax({
                                 url: base_url + '/order/addDetailList',
                                 type: 'post',
-                                data: dataJSON,
-                                dataType: 'JSON',
+                                data: {
+                                    'orderCode': orderCode,
+                                    'goodsIds': goodsIds.slice(0, goodsIds.length - 1),
+                                    'counts': counts.slice(0, counts.length - 1),
+                                    'peopleNum': peopleNum,
+                                    'totalPrice': totalPrice
+                                },
                                 success: function (res) {
                                     if (res.code == 200) {
                                         // orderCode = res.data;
@@ -327,7 +333,7 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
             layer.msg("还没有点菜哦！", {icon: 6});
             return;
         }
-        var url = "/myOrder.html?orderCode=" + orderCode;
+        var url = "./myOrder.html?orderCode=" + orderCode;
         layer.open({
             type: 2
             , title: '已提交菜单'

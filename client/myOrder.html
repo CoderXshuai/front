@@ -5,12 +5,14 @@
     <title>已点菜</title>
     <link rel="stylesheet" href="../static/layuiadmin/layui/css/layui.css"
           media="all"/>
+    <script src="../static/js/global.js"></script>
     <style>
         body {
             margin: 10px;
             background: #eeeeee;
         }
     </style>
+    <script src="../static/layui/layui.js"></script>
 </head>
 <body>
 <div class="layui-card">
@@ -66,15 +68,16 @@
     </div>
 </div>
 <script src="../static/layuiadmin/layui/layui.js"></script>
-<script th:inline="javascript">
+<script>
     layui.use(['table', 'laydate'], function () {
         var $ = layui.$
             , form = layui.form
             , table = layui.table
-            , orderCode = [[${orderCode}]];
+            , orderCode = sessionStorage.getItem("orderCode");
         table.render({
             elem: '#tableList'
-            , url: '/restaurant/guest/client/myOrder.do?orderCode=' + orderCode//数据接口
+            , url: base_url + '/order/detailByOrderCode?orderCode=2023-0322-111431' //数据接口
+            , method: 'post'
             , title: '已提交菜单'
             , even: true//开启背景隔行
             , request: {
@@ -142,6 +145,12 @@
                 }
                 , {fixed: 'right', title: "工具栏", align: 'center', width: 120, toolbar: '#barDemo'}
             ]]
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": res.code, //解析接口状态
+                    "data": res.list //解析数据列表
+                };
+            }
         });
         //监听行工具事件
         table.on('tool(tableList)', function (obj) { //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
