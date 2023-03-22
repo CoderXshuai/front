@@ -21,6 +21,11 @@
         <table id="tableList" lay-filter="tableList">
 
         </table>
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm" lay-event="CHECK_OUT">结账</button>
+            </div>
+        </script>
         <!--右边工具栏-->
         <script type="text/html" id="barDemo">
             {{#
@@ -41,7 +46,7 @@
             { }}
             <div style="color:red">无图片</div>
             {{#  } else { }}
-            <img src="/restaurant/{{d.goods.imgUrl}}" class="laytable-cell-1-imgUrl">
+            <img src="../restaurant{{d.goods.imgUrl}}" class="laytable-cell-1-imgUrl">
             {{#  } }}
         </script>
         <script type="text/html" id="status">
@@ -76,6 +81,12 @@
             , orderCode = sessionStorage.getItem("orderCode");
         table.render({
             elem: '#tableList'
+            , toolbar: '#toolbarDemo'
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }]
             , url: base_url + '/order/detailByOrderCode?orderCode=2023-0322-111431' //数据接口
             , title: '已提交菜单'
             , even: true//开启背景隔行
@@ -147,8 +158,21 @@
             , parseData: function (res) { //res 即为原始返回的数据
                 return {
                     "code": res.code, //解析接口状态
-                    "data": res.list //解析数据列表
+                    "data": res.data.list, //解析数据列表
+                    "count": res.count,//解析数据列表
+                    "msg": res.msg,
                 };
+            }
+            , done: function (res, curr, count) {
+                //如果是异步请求数据方式，res即为你接口返回的信息。
+                //如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                console.log(res);
+
+                //得到当前页码
+                console.log(curr);
+
+                //得到数据总量
+                console.log(count);
             }
         });
         //监听行工具事件
@@ -176,6 +200,34 @@
                     });
                     layer.close(index);
                 });
+            }
+        });
+        table.on('toolbar(tableList)', function (obj) {
+            switch (obj.event) {
+                case 'CHECK_OUT':
+                    layer.confirm('确定要结账吗?', function (index) {
+                        $.ajax({
+                            url: base_url + "/pay/doPay",
+                            type: "post",
+                            dataType: "JSON",
+                            data: {orderCode: orderCode},
+                            success: function (result) {
+                                if (result.code == 200) {
+                                    layer.msg('结账成功!', {icon: 1});
+                                    setTimeout(function () {
+                                        window.location.href = "./main.html";
+                                    }, 1000);
+                                } else {
+                                    layer.alert(result.msg, {
+                                        title: '提交结果'
+                                        , anim: 6
+                                    });
+                                }
+                            }
+                        });
+                        layer.close(index);
+                    });
+                    break;
             }
         });
     });
