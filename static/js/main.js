@@ -217,7 +217,6 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
                             var peopleNode = popDom.find("input[name='people_number']");
                             var peopleNum = parseInt($(peopleNode).val());
                             let totalPrice = parseFloat($("#totalMoney").val());
-                            var dataJSON = JSON.stringify(order);
                             $.ajax({
                                 url: base_url + '/order/addDetailList',
                                 type: 'post',
@@ -333,7 +332,7 @@ layui.use(['index', "jquery", 'layer', 'element'], function () {
             layer.msg("还没有点菜哦！", {icon: 6});
             return;
         }
-        var url = "./myOrder.html?orderCode=" + orderCode;
+        var url = "./order.html?orderCode=" + orderCode;
         layer.open({
             type: 2
             , title: '已提交菜单'
